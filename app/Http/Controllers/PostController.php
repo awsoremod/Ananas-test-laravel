@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use App\Http\Resources\PostResource;
+use App\Http\Requests\PostStoreRequest;
+
 
 class PostController extends Controller
 {
@@ -14,7 +18,10 @@ class PostController extends Controller
      */
     public function index()
     {
-        //
+        return Post::select('posts.id', 'users.name', 'posts.description', 'posts.created_at')
+            ->join('users', 'posts.user_id', '=', 'users.id')
+            ->orderBy('created_at')
+            ->paginate(20);
     }
 
     /**
@@ -33,9 +40,20 @@ class PostController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(PostStoreRequest $request)
     {
-        //
+        $request->validated();
+        $user = auth()->user();
+        $created_post = Post::create([
+            'description' => $request->description,
+            'user_id' => $user->id
+        ]);
+        return new PostResource((object) [
+            "id" => $created_post->id,
+            'name' => $user->name,
+            'description' => $created_post->description,
+            'created_at' => $created_post->created_at
+        ]);
     }
 
     /**
@@ -75,11 +93,33 @@ class PostController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Post  $post
+     *
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Post $post)
+    public function destroy(Request $request) // пофиксить лишние запросы к бд и с мидлваре
     {
-        //
+        $validated = (object) $request->validate([
+            'id' => [
+                'required',
+                'numeric',
+                Rule::exists('posts', 'id')
+            ],
+        ]);
+        $user = auth()->user();
+        $post = Post::where('id', $validated->id)->first();
+
+        if ($post->user_id === $user->id) {
+            $res = $post->delete();
+        } else {
+            return response()->json([
+                'message' => 'Попытка удаления чужого поста',
+            ], 403);
+        }
+        return new PostResource((object) [
+            "id" => $post->id,
+            'name' => $user->name,
+            'description' => $post->description,
+            'created_at' => $post->created_at
+        ]);
     }
 }
