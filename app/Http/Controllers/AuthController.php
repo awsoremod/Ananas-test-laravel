@@ -19,7 +19,6 @@ class AuthController extends Controller
             "email" => $request->email,
             "password" => bcrypt($request->password),
         ]);
-        //$created_user->save(); // test
         return response()->json([
             'message' => 'Вы успешно зарегистрированы'
         ], 200);
@@ -38,8 +37,6 @@ class AuthController extends Controller
         }
 
         $token =  $user->createToken($user->name)->plainTextToken;
-
-        //$token->token->save();
 
         return response()->json([
             'token_type' => 'Bearer',

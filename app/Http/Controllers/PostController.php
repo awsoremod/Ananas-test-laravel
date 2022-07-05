@@ -20,7 +20,7 @@ class PostController extends Controller
     {
         return Post::select('posts.id', 'users.name', 'posts.description', 'posts.created_at')
             ->join('users', 'posts.user_id', '=', 'users.id')
-            ->orderBy('created_at')
+            ->orderBy('created_at') // oldest()
             ->paginate(20);
     }
 
@@ -98,7 +98,6 @@ class PostController extends Controller
      */
     public function destroy(Request $request) // TO DO пофиксить лишние запросы к бд и с мидлваре
     {
-
         $validated = (object) $request->validate([
             'id' => [
                 'required',
