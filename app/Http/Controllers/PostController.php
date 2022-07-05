@@ -96,8 +96,9 @@ class PostController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Request $request) // пофиксить лишние запросы к бд и с мидлваре
+    public function destroy(Request $request) // TO DO пофиксить лишние запросы к бд и с мидлваре
     {
+
         $validated = (object) $request->validate([
             'id' => [
                 'required',
@@ -108,13 +109,20 @@ class PostController extends Controller
         $user = auth()->user();
         $post = Post::where('id', $validated->id)->first();
 
-        if ($post->user_id === $user->id) {
-            $res = $post->delete();
-        } else {
+        if ($post->user_id !== $user->id) {
             return response()->json([
                 'message' => 'Попытка удаления чужого поста',
             ], 403);
         }
+
+        if (now()->subHours(24) > $post->created_at) {
+            return response()->json([
+                'message' => 'Сообщение существует более 24 часов',
+            ], 418);
+        }
+
+        $post->delete();
+
         return new PostResource((object) [
             "id" => $post->id,
             'name' => $user->name,
