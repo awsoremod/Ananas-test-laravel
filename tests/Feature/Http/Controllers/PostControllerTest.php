@@ -41,11 +41,11 @@ class PostControllerTest extends TestCase
     public function test_store_fin_insert_the_same()
     {
         $user = User::where('id', 1)->first();
-        // $response = $this->actingAs($user)
-        //     ->postJson('api/posts', ['description' => 'test description qwer']);
-        // $user = Post::where('description', 'test description qwer')->get();
+        $response = $this->actingAs($user)
+            ->postJson('api/posts', ['description' => 'test description qwer']);
+        $user = Post::where('description', 'test description qwer')->first();
 
-        // $response->assertStatus(200);
+        $response->assertStatus(200);
     }
 
     // public function test_store_fin_worked()
