@@ -44,7 +44,8 @@ class PostControllerTest extends TestCase
         $response = $this->actingAs($user)
             ->postJson('api/posts', ['description' => 'test description qwer']);
         $user = Post::where('description', 'test description qwer')->first();
-
+        // так как у нас desc не уникален. нужно проверить количество записей до обращения к api. с этим описанием. и потом опять проверить
+        // ушел изучать dock и rabbitmq. через докер установил postgres и redis. и проверил работу скачав идеешки тоже через докер.
         $response->assertStatus(200);
     }
 
